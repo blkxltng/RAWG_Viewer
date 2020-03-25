@@ -1,7 +1,6 @@
 package com.blkxltng.rawgviewer.models
 
 import com.squareup.moshi.Json
-import java.time.LocalDate
 
 
 /**
@@ -74,7 +73,7 @@ class GameDetails (
     val released: String,
     val background_image: String,
     val tba: Boolean,
-    val updated: LocalDate,
+    val updated: String,
     val website: String,
     val rating: Double,
     val ratings: List<Rating>,

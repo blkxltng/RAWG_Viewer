@@ -8,3 +8,8 @@ import com.bumptech.glide.Glide
 fun ImageView.gameImageUrl(imageUrl: String?) {
     Glide.with(this.context).load(imageUrl).centerCrop().into(this)
 }
+
+@BindingAdapter("gameImageUrlDetails")
+fun ImageView.gameImageUrlDetails(imageUrl: String?) {
+    Glide.with(this.context).load(imageUrl).fitCenter().into(this)
+}

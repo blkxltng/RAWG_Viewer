@@ -1,16 +1,18 @@
 package com.blkxltng.rawgviewer.ui.main
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blkxltng.rawgviewer.R
+import com.blkxltng.rawgviewer.databinding.MainFragmentBinding
 import com.blkxltng.rawgviewer.items.GameListingItem
 import com.blkxltng.rawgviewer.models.Game
 import com.blkxltng.rawgviewer.models.RAWGDataResponse
@@ -27,21 +29,20 @@ class MainFragment : Fragment() {
 
     lateinit var layoutManager: LinearLayoutManager
 
-    companion object {
-        fun newInstance() = MainFragment()
-    }
+    private lateinit var binding: MainFragmentBinding
+    val viewModel: MainViewModel by viewModels()
 
-    private lateinit var viewModel: MainViewModel
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
-        return inflater.inflate(R.layout.main_fragment, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = DataBindingUtil.inflate(inflater, R.layout.main_fragment, container, false)
+        binding.lifecycleOwner = viewLifecycleOwner
+        return binding.root
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
         // TODO: Use the ViewModel
+        binding.mainViewModel = viewModel
+        binding.executePendingBindings()
         setupObservers()
     }
 
@@ -54,6 +55,7 @@ class MainFragment : Fragment() {
 
         viewModel.gameClickedEvent.observe(viewLifecycleOwner, Observer {
             Toast.makeText(context, "You clicked ${it.name}!", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(MainFragmentDirections.actionMainFragmentToDetailsFragment(it.id.toString()))
         })
 
     }
@@ -72,7 +74,6 @@ class MainFragment : Fragment() {
         gamesResponse.enqueue(object: Callback<RAWGDataResponse> {
             override fun onResponse(call: Call<RAWGDataResponse>, response: Response<RAWGDataResponse>) {
                 if (response.isSuccessful) {
-                    Timber.d("results are ${response.body()?.results}")
                     list = response.body()!!.results
 
                     if(list != null) {

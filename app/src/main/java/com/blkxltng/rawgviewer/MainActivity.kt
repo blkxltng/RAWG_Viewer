@@ -1,8 +1,9 @@
 package com.blkxltng.rawgviewer
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.blkxltng.rawgviewer.ui.main.MainFragment
+import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.Navigation.findNavController
+import androidx.navigation.ui.setupActionBarWithNavController
 import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
@@ -12,10 +13,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.main_activity)
         // Plant a tree so Timber logs will show
         Timber.plant(Timber.DebugTree())
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                    .replace(R.id.container, MainFragment.newInstance())
-                    .commitNow()
-        }
+
+        setupNavigation()
+    }
+
+    private fun setupNavigation() {
+        val navController = findNavController(this, R.id.nav_host_fragment)
+
+        setupActionBarWithNavController(navController)
     }
 }

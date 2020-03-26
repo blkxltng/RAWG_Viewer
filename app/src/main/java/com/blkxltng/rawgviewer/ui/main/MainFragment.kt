@@ -15,22 +15,21 @@ import com.blkxltng.rawgviewer.R
 import com.blkxltng.rawgviewer.databinding.MainFragmentBinding
 import com.blkxltng.rawgviewer.items.GameListingItem
 import com.blkxltng.rawgviewer.models.Game
-import com.blkxltng.rawgviewer.models.RAWGDataResponse
-import com.blkxltng.rawgviewer.network.RestApi
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import kotlinx.android.synthetic.main.main_fragment.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import timber.log.Timber
 
 class MainFragment : Fragment() {
 
-    lateinit var layoutManager: LinearLayoutManager
+    private lateinit var layoutManager: LinearLayoutManager
 
     private lateinit var binding: MainFragmentBinding
-    val viewModel: MainViewModel by viewModels()
+    private val viewModel: MainViewModel by viewModels()
+
+    private val groupAdapter = GroupAdapter<GroupieViewHolder>()
+    private var positionIndex: Int = -1
+    private var topView: Int = -1
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.main_fragment, container, false)
@@ -40,18 +39,34 @@ class MainFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        // TODO: Use the ViewModel
         binding.mainViewModel = viewModel
         binding.executePendingBindings()
         setupObservers()
     }
 
-    override fun onResume() {
-        super.onResume()
-        getGames()
+    override fun onPause() {
+        super.onPause()
+
+        // Save the scroll position of the recyclerView onPause()
+        positionIndex = layoutManager.findFirstVisibleItemPosition()
+        val startView: View = recyclerView.getChildAt(0)
+        topView = startView.top - recyclerView.paddingTop
     }
 
-    fun setupObservers() {
+    override fun onResume() {
+        super.onResume()
+
+        // Restore the scroll position of the recyclerView onResume()
+        if (positionIndex != -1) {
+            layoutManager.scrollToPositionWithOffset(positionIndex, topView)
+        }
+    }
+
+    private fun setupObservers() {
+
+        viewModel.listGames.observe(viewLifecycleOwner, Observer {
+            loadGames(it)
+        })
 
         viewModel.gameClickedEvent.observe(viewLifecycleOwner, Observer {
             Toast.makeText(context, "You clicked ${it.name}!", Toast.LENGTH_SHORT).show()
@@ -60,36 +75,12 @@ class MainFragment : Fragment() {
 
     }
 
-    fun getGames() {
-        val restApi = RestApi()
-        val gamesResponse = restApi.getAntUpcomingGames()
-        var list: List<Game>?
-
-        val groupAdapter = GroupAdapter<GroupieViewHolder>()
-
+    fun loadGames(list: List<Game>) {
         layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = groupAdapter
 
-        gamesResponse.enqueue(object: Callback<RAWGDataResponse> {
-            override fun onResponse(call: Call<RAWGDataResponse>, response: Response<RAWGDataResponse>) {
-                if (response.isSuccessful) {
-                    list = response.body()!!.results
-
-                    if(list != null) {
-                        list?.forEach { groupAdapter.add(GameListingItem(GameViewModel(viewModel).apply { game.postValue(it) })) }
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<RAWGDataResponse>, t: Throwable) {
-                Timber.d(t, "error")
-            }
-        })
-
-
-
-
+        list.forEach { groupAdapter.add(GameListingItem(GameViewModel(viewModel).apply { game.postValue(it) })) }
     }
 
 }

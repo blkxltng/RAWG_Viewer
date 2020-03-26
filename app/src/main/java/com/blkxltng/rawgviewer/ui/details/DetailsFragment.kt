@@ -10,18 +10,12 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.blkxltng.rawgviewer.R
 import com.blkxltng.rawgviewer.databinding.FragmentGameDetailsBinding
-import com.blkxltng.rawgviewer.models.GameDetails
-import com.blkxltng.rawgviewer.network.RestApi
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import timber.log.Timber
 
 class DetailsFragment : Fragment() {
 
     private lateinit var binding: FragmentGameDetailsBinding
-    val viewModel: DetailsViewModel by viewModels()
-    val args: DetailsFragmentArgs by navArgs()
+    private val viewModel: DetailsViewModel by viewModels()
+    private val args: DetailsFragmentArgs by navArgs()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
@@ -39,34 +33,7 @@ class DetailsFragment : Fragment() {
         setupObservers()
     }
 
-    override fun onResume() {
-        super.onResume()
-        getGame()
+    private fun setupObservers() {
+        viewModel.loadGameDetails(args.gameID)
     }
-
-    fun setupObservers() {
-
-    }
-
-    fun getGame() {
-        val restApi = RestApi()
-        val gamesResponse = restApi.getGameDetails(args.gameID)
-
-        gamesResponse.enqueue(object: Callback<GameDetails> {
-            override fun onResponse(call: Call<GameDetails>, response: Response<GameDetails>) {
-                if (response.isSuccessful) {
-                    viewModel.gameDetails.postValue(response.body())
-                }
-            }
-
-            override fun onFailure(call: Call<GameDetails>, t: Throwable) {
-                Timber.d(t, "error")
-            }
-        })
-
-
-
-
-    }
-
 }

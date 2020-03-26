@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.blkxltng.rawgviewer.models.Game
 
-class GameViewModel(val mainViewModel: MainViewModel) : ViewModel() {
+class GameViewModel(private val mainViewModel: MainViewModel) : ViewModel() {
 
     val game = MutableLiveData<Game>(null)
 
